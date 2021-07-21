@@ -1,3 +1,4 @@
+'use stricts'
 const galleryItems = [
   {
     preview:
@@ -63,3 +64,77 @@ const galleryItems = [
     description: 'Lighthouse Coast Sea',
   },
 ];
+const galleryContainer = document.querySelector('.js-gallery');
+const galleryMarkup = createCardsGalleryMarkup(galleryItems);
+galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+galleryContainer.addEventListener('click',onGalleryContainerClick)
+const modalWindow = document.querySelector('.lightbox')
+const closeBtnModalWindow = document.querySelector('button[data-action="close-lightbox"]')
+closeBtnModalWindow.addEventListener('click',onCloseModalWindow)
+const imageOnContainer = document.querySelector('.lightbox__image')
+const overlayGallery = document.querySelector('.lightbox__overlay')
+overlayGallery.addEventListener('click', onBackdropClick)
+
+
+function createCardsGalleryMarkup(gallery) {
+  const markup = gallery.map(({ original, preview, description }) => {
+    return `
+  <li class="gallery__item">
+    <a
+      class="gallery__link"
+      href="${original}"
+    >
+    <img
+      class="gallery__image"
+      src="${preview}"
+      data-source="${original}"
+      alt="${description}"
+    />
+    </a>
+</li> 
+  `
+  })
+.join('');
+return markup;
+}
+function onGalleryContainerClick(event) {
+  if (!event.target.classList.contains('gallery__image')) {
+    return
+  }
+  
+  onOpenModalClick(event)
+  imageOnContainer.src = event.target.dataset.source
+  imageOnContainer.alt = event.target.alt
+  
+  
+}
+function onOpenModalClick(event) {
+  window.addEventListener('keydown',onEscKeyPress)
+  event.preventDefault();
+  modalWindow.classList.add('is-open')
+}
+function onCloseModalWindow() {
+  window.removeEventListener('keydown',onEscKeyPress)
+  modalWindow.classList.remove('is-open')
+  imageOnContainer.src = '';
+  imageOnContainer.alt = '';
+}
+function onBackdropClick(event) {
+  if (event.currentTarget === event.target)
+    onCloseModalWindow()
+}
+function onEscKeyPress(event) {
+  if (event.code === 'Escape') {
+     onCloseModalWindow()
+  }
+}
+//galleryContainer.addEventListener('click',onChangeImageByKey) 
+// function onChangeImageByKey(event) {
+
+// event.target=+1
+
+//   // if (event.code === 'ArrowRight') {
+
+//   //  }
+// //   if (event.code === 'ArrowLeft')
+// }
