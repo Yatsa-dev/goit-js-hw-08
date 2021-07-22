@@ -64,18 +64,24 @@ const galleryItems = [
     description: 'Lighthouse Coast Sea',
   },
 ];
-const galleryContainer = document.querySelector('.js-gallery');
+const refs = {
+  galleryContainer: document.querySelector('.js-gallery'),
+  modalWindow: document.querySelector('.lightbox'),
+  closeBtnModalWindow: document.querySelector('button[data-action="close-lightbox"]'),
+  imageOnContainer: document.querySelector('.lightbox__image'),
+  overlayGallery: document.querySelector('.lightbox__overlay'),
+  arrayImagesForChange: document.querySelectorAll('.gallery__image'),
+};
+
+let activeIndex = 0;
+const searchActiveIndex = onChangeImageByKey(galleryItems);
 const galleryMarkup = createCardsGalleryMarkup(galleryItems);
-galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
-galleryContainer.addEventListener('click',onGalleryContainerClick)
-const modalWindow = document.querySelector('.lightbox')
-const closeBtnModalWindow = document.querySelector('button[data-action="close-lightbox"]')
-closeBtnModalWindow.addEventListener('click',onCloseModalWindow)
-const imageOnContainer = document.querySelector('.lightbox__image')
-const overlayGallery = document.querySelector('.lightbox__overlay')
-overlayGallery.addEventListener('click', onBackdropClick)
+refs.closeBtnModalWindow.addEventListener('click',onCloseModalWindow)
+refs.overlayGallery.addEventListener('click', onBackdropClick)
+refs.galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+refs.galleryContainer.addEventListener('click',onGalleryContainerClick)
 
-
+// функция создания разметки
 function createCardsGalleryMarkup(gallery) {
   const markup = gallery.map(({ original, preview, description }) => {
     return `
@@ -97,44 +103,73 @@ function createCardsGalleryMarkup(gallery) {
 .join('');
 return markup;
 }
+// фунцкия делегирования 
 function onGalleryContainerClick(event) {
   if (!event.target.classList.contains('gallery__image')) {
     return
   }
-  
+  refs.imageOnContainer.src = event.target.dataset.source
+  refs.imageOnContainer.alt = event.target.alt
+
   onOpenModalClick(event)
-  imageOnContainer.src = event.target.dataset.source
-  imageOnContainer.alt = event.target.alt
-  
-  
 }
+// функция поиска активного индекса картинки
+  function onChangeImageByKey(gallery) {
+  gallery.forEach((num,idx) => {
+    if (num.original === refs.imageOnContainer.src) {
+      activeIndex = idx; 
+    }
+  })
+}
+// функция переключения картинок по нажатию клавиш
+ function changeImagePressRigthLeftKeys({ key }) {
+  switch (key) {
+    case galleryItems.length - 1 > activeIndex && "ArrowRight":
+      activeIndex += 1;
+      refs.imageOnContainer.src = galleryItems[activeIndex].original;
+      break;
+    case activeIndex > 0 && "ArrowLeft":
+      activeIndex -= 1;
+      refs.imageOnContainer.src = galleryItems[activeIndex].original;
+      break;
+    case activeIndex === galleryItems.length - 1 && "ArrowRight":
+      activeIndex = 0;
+      refs.imageOnContainer.src = galleryItems[activeIndex].original;
+      break;
+    case activeIndex === 0 && "ArrowLeft":
+      activeIndex = galleryItems.length - 1;
+      refs.imageOnContainer.src = galleryItems[activeIndex].original;
+      break;
+    case "Escape":
+      onCloseModalWindow();
+      break;
+    default:
+      alert("что-то пошло не так");
+  }
+}
+// добавление класс для открития модального окна
 function onOpenModalClick(event) {
+  window.addEventListener('keydown', changeImagePressRigthLeftKeys)
   window.addEventListener('keydown',onEscKeyPress)
   event.preventDefault();
-  modalWindow.classList.add('is-open')
+  refs.modalWindow.classList.add('is-open')
 }
+// закрытие модального окна и очищение src 
 function onCloseModalWindow() {
+   window.removeEventListener('keydown', changeImagePressRigthLeftKeys)
   window.removeEventListener('keydown',onEscKeyPress)
-  modalWindow.classList.remove('is-open')
-  imageOnContainer.src = '';
-  imageOnContainer.alt = '';
+  refs.modalWindow.classList.remove('is-open')
+  refs.imageOnContainer.src = '';
+  refs.imageOnContainer.alt = '';
 }
+// закрытие модалки по клику на оверлей 
 function onBackdropClick(event) {
   if (event.currentTarget === event.target)
     onCloseModalWindow()
 }
+// закритие модалки по клавише Esc
 function onEscKeyPress(event) {
   if (event.code === 'Escape') {
      onCloseModalWindow()
   }
 }
-//galleryContainer.addEventListener('click',onChangeImageByKey) 
-// function onChangeImageByKey(event) {
-
-// event.target=+1
-
-//   // if (event.code === 'ArrowRight') {
-
-//   //  }
-// //   if (event.code === 'ArrowLeft')
-// }
